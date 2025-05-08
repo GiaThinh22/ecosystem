@@ -41,20 +41,34 @@ class STAR{
 }
 
 class cloud{
-    constructor(x,y,r){
+    constructor(x,y,size,type){
         this.pos = createVector(x,y);
-        this.r = r;
-    }
+        this.size = size;
+        this.type = type //1 default   2 large    3 long
+      }
     show(){
         push();
         noStroke();
         fill(255,255,255,max(0,day)*2+20);  
-        circle(this.pos.x,this.pos.y,this.r);
-        circle(this.pos.x+15,this.pos.y-5,this.r);
-        circle(this.pos.x-15,this.pos.y-8,this.r);
-        circle(this.pos.x-2,this.pos.y-15,this.r);
+        if(this.type == 1){
+            circle(this.pos.x,this.pos.y,this.size);
+            circle(this.pos.x+0.5*this.size,this.pos.y-0.17*this.size,this.size);
+            circle(this.pos.x-0.5*this.size,this.pos.y-0.27*this.size,this.size);
+            circle(this.pos.x-0.07*this.size,this.pos.y-0.5*this.size,this.size);
+          }
+          else if(this.type == 3){
+            ellipse(this.pos.x,this.pos.y+0.1*this.size,2*this.size,this.size);
+            ellipse(this.pos.x,this.pos.y-0.5*this.size,2*this.size,this.size);
+            ellipse(this.pos.x+0.7*this.size,this.pos.y-0.2*this.size,2*this.size,this.size);
+            ellipse(this.pos.x-0.6*this.size,this.pos.y-0.1*this.size,2*this.size,this.size);
+          }
+          else if(this.type == 2){
+            circle(this.pos.x+0.5*this.size,this.pos.y,1.5*this.size);
+            circle(this.pos.x-0.5*this.size,this.pos.y,1.5*this.size);
+            circle(this.pos.x,this.pos.y-0.6*this.size,1.5*this.size);
+          }
         pop();
-        this.pos.x+=random(0.3,0.9);
+        this.pos.x+=0.5;
         if(this.pos.x>=width){
             this.pos.x = 0;
         }

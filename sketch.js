@@ -6,17 +6,40 @@ let G; // gravity
 let analyseMode = false,stopPressed = true,blackCoverAlpha = 0;//analyse mode components
 let analyseArrow,analyseDatas = [];
 let eatCount=0,pointsEarned = 0; // flies eaten counter and points earned
+
+let seed = "",seedComponents = [];
+let noiseOffsetX = 0.0,noiseOffsetY = 100.0;
+//0x-1X-2aa-3y-4YY-5zzz-6ZZ-7NoiseSeed
+/*clouds 	x-type of clouds		X-amount		aa-size
+  flies 		y-size				YY-amount
+  cattails 	zzz-height			ZZ-amount*/
+
+
+function generateSeed(){
+  seedComponents[0] = round(random(1,3));//cloud type
+  seedComponents[1] = round(random(5,9));//cloud amount
+  seedComponents[2] = round(random(20,30));//cloud size
+  seedComponents[3] = round(random(2,4));//fly size
+  seedComponents[4] = round(random(15,25));//fly amount
+  seedComponents[5] = round(random(150,170));//cattail height
+  seedComponents[6] = round(random(10,15));//cattail amount
+  seedComponents[7] = round(random(10,99));//noise seed
+  noiseSeed(seedComponents[7]);
+  seed = str(seedComponents);
+}
 function setup() {
   createCanvas(600, 350);
+
+  generateSeed();
+
   G =  0.5;
   frogs = new frog(200,100,1.5,3);
   analyseArrow = new vectorArrows(frogs);
-  for(let c = 0; c<5; c++){
-    clouds[c] = new cloud(random(50,width-50),random(30,90),random(40,60));
-  }
+  generateCloud();
   for(let s = 0; s<30; s++){
     stars[s] = new STAR(random(0,600),random(0,240),random(0.5,5));
   }
+  generateCloud();
   for(let s = 0; s<10; s++){
     cattails[s] = new cattail(10+7*s,300,random(-5,5),random(-180,-150));
   }
@@ -29,21 +52,28 @@ function setup() {
   envi[3] = new env(340,350,width,height,true,false,false);
   envi[4] = new env(350,340,50,10,false,false,false); //jumping pad
 }
+function generateCloud(seed){
+  for(let c = 0; c<seedComponents[1]; c++){
+    let x = noise(noiseOffsetX) * width;
+    noiseOffsetX += 5;
 
+    let y = noise(noiseOffsetY) * 110 + 10;
+    noiseOffsetY += 5; 
+
+    clouds[c] = new cloud(x,y,seedComponents[2],seedComponents[0]);
+  }
+}
 function draw() {
   background(20, 20, 60);
   environment();
-  animals();
   UI();
-  fill(0);
   checkAnalyse();
-
+  animals();
   mainObjects();
 
 }
 function mainObjects(){
-  frogs.update();
-  frogs.show();
+
   if(analyseMode){
     analyseArrow.show();
   }
@@ -57,13 +87,14 @@ function animals(){
     f.checkEaten();
     f.update();
     f.show();
-
   }
+  frogs.update();
+  frogs.show();
 }
 function UI(){
   push();
   textSize(20);
-  text("Score: "+floor(pointsEarned), 20,30);
+  text("Score: "+floor(pointsEarned)+"   Seed:" + seed, 20,30);
   text(frogs.mode,20,50);
   pop();
 }

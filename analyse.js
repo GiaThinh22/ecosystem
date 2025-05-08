@@ -39,6 +39,7 @@ class data{
     show(){
         push();
         rectMode(CENTER);
+        fill(0);
         rect(this.pos.x,this.pos.y-5,50,30);
         fill("white");
         textAlign(this.mode);

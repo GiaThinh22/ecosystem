@@ -207,6 +207,7 @@ class fly{
         this.dirX = 1; //1=right   -1=left
         this.dirY = -1; //-1=up   1=down
         this.eaten = false;
+        this.color = 0;
     }    
     addForce(f){
         this.acc.add(f);
@@ -272,7 +273,13 @@ class fly{
     }
     show(){
         push();
-        fill(0);
+        fill(this.color);
+        if(analyseMode&&this.color<=220){
+            this.color+=20;
+        }
+        if(!analyseMode&&this.color>=20){
+            this.color-=20;
+        }
         noStroke();
         if(!this.eaten){
             circle(this.pos.x,this.pos.y,this.s);
@@ -282,33 +289,3 @@ class fly{
     }
 }
 
-class poop{
-    constructor(x,y,a){
-        this.pos = createVector(x,y);
-        this.time = 500;
-        this.a = a;
-    }
-    update(ff){
-        let G = 20;
-        let dir = p5.Vector.sub(ff.pos, this.pos);
-        let distSq = constrain(dir.magSq(), 100, 2500);
-        let strength = G * (ff.n * 1.0) / distSq;
-        dir.setMag(strength/100);
-        ff.addForce(dir);
-        if(this.pos.y<250){
-            this.pos.y+=2;
-        }
-        else{
-            this.pos.y=250;
-        }
-        this.time--;
-        if(this.time<=0){
-            this.a = false;
-        }
-        if(this.a){
-        push();
-        textSize(10);
-        text("O",this.pos.x,this.pos.y);
-        pop();}
-    }
-}
