@@ -26,6 +26,9 @@ class vectorArrows{
             drawArrow(this.target.pos, this.amplifier*this.target.vel.x, this.amplifier/2*this.target.vel.y,"purple");
         }
         drawArrow(this.posAboveTarget, this.target.dir*30, 0, "lime");
+
+
+
     }
 }
 

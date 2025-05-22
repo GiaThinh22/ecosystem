@@ -1,6 +1,6 @@
 let envi = [], stars = [], clouds = [];// land/liquid/air array, stars array, clouds array
 let cattails = [];// cattails array
-let frogs, flies = [];//frog and flies array
+let frogs, flies = [], fish = [];//frog and flies and fish array
 let day = 0,dc = 2,time,timeString;// day and dayCount and time converted from day
 let G; // gravity
 let analyseMode = false,stopPressed = true,blackCoverAlpha = 0;//analyse mode components
@@ -8,14 +8,17 @@ let analyseArrow,analyseDatas = [];
 let eatCount=0,pointsEarned = 0; // flies eaten counter and points earned
 let seedReady = false;
 let seed = "",seedComponents = [];
-let noiseOffsetX = 0.0,noiseOffsetY = 100.0;
+let  noiseOffsetCloudX = 0.0,noiseOffsetCloudY = 100.0;
+let noiseOffsetMass = 75.0;
+let  noiseOffsetFishX = 0.0,noiseOffsetFishY = 100.0,noiseOffsetColor = 50.0;
 let invalidTimer = 0;
 let worldReady = false;
-//3,6,29,4,20,151,14,46
-//0x-1X-2aa-3y-4YY-5zzz-6ZZ-7NoiseSeed
+//3,6,29,4,20,151,14,46,11,4
+//0x-1X-2aa-3y-4YY-5zzz-6ZZ-7NoiseSeed-8AA-9B
 /*clouds 	x-type of clouds		X-amount		aa-size
   flies 		y-size				YY-amount
-  cattails 	zzz-height			ZZ-amount*/
+  cattails 	zzz-height			ZZ-amount
+  fish      AA-amount       B-mass*/
 let seedInputed = []; 
 let input, button;
 
@@ -28,6 +31,8 @@ function generateSeed(){
   seedComponents[5] = round(random(150,170));//cattail height
   seedComponents[6] = round(random(10,15));//cattail amount
   seedComponents[7] = round(random(10,99));//noise seed
+  seedComponents[8] = round(random(10,15));//fish amount
+  seedComponents[9] = round(random(40,50));//fish size
   noiseSeed(seedComponents[7]);
   seed = str(seedComponents);
 }
@@ -35,7 +40,7 @@ function generateSeed(){
 function resetEverything(){
   envi = [], stars = [], clouds = [];// land/liquid/air array, stars array, clouds array
   cattails = [];// cattails array
-  frogs, flies = [];//frog and flies array
+  frogs, flies = [], fish = [];//frog and flies array
   day = 0,dc = 2,time,timeString;// day and dayCount and time converted from day
   G; // gravity
   analyseMode = false,stopPressed = true,blackCoverAlpha = 0;//analyse mode components
@@ -43,7 +48,9 @@ function resetEverything(){
   eatCount=0,pointsEarned = 0; // flies eaten counter and points earned
   seedReady = false;
   seed = "",seedComponents = [];
-  noiseOffsetX = 0.0,noiseOffsetY = 100.0;
+  noiseOffsetCloudX = 0.0,noiseOffsetCloudY = 100.0;
+  noiseOffsetMass = 75.0;
+  noiseOffsetFishX = 0.0, noiseOffsetFishY = 100.0, noiseOffsetColor = 50.0;
   invalidTimer = 0;
   worldReady = false;
 }
@@ -51,8 +58,8 @@ function resetEverything(){
 function setup() {
   createCanvas(600, 350);
 
-  generateSeed();
-  input = createInput('Input or paste a seed');
+  //generateSeed();
+  input = createInput('random');
   button = createButton("submit");
   button.mouseClicked(submitted);
 }
@@ -70,7 +77,7 @@ function submitted(){
     return;
   }
 
-  if (seedInputed.length === 8) {
+  if (seedInputed.length === 10) {
     let validSeed =
       checkInRange(1,3,seedInputed[0]) &&
       checkInRange(5,9,seedInputed[1]) &&
@@ -79,11 +86,13 @@ function submitted(){
       checkInRange(15,25,seedInputed[4]) &&
       checkInRange(150,170,seedInputed[5]) &&
       checkInRange(10,15,seedInputed[6]) &&
-      checkInRange(10,99,seedInputed[7]);
+      checkInRange(10,99,seedInputed[7]) &&
+      checkInRange(10,15,seedComponents[8]) &&
+      checkInRange(40,50,seedComponents[9]);
 
     if(validSeed){
       resetEverything();
-      copyArray(8);
+      copyArray(10);
       input.value(seedComponents);
       seedReady = true;
     } else {
@@ -109,16 +118,16 @@ function instructionMessage(){
     fill(255);
     textAlign(CENTER);
     text("You control a frog in a swamp",width/2,30);
-    text("T to switch ANALYSE MODE on/off",width/2,60);
-    text("Jumping to flies allows you to convert them to points",width/2,90);
-    text("Flies respawn during the day",width/2,120);
+    text("Jumping to flies allows you to convert them to points",width/2,60);
+
+    text("T to switch ANALYSE MODE on/off",width/2,120);
     text("Q to swap between AUTO MODE and CONTROL MODE",width/2,150);
-    text("A and D to look left and right respectively in CONTROL MODE",width/2,180);
-    text("W to jump in CONTROL MODE",width/2,210);
-    text("S to switch to S***ING MODE and attract flies",width/2,240);
-    text("During S***ING MODE, points are rapidly consumed",width/2,270);
+    text("A and D to look left and right, W to jump in CONTROL MODE",width/2,180);
+    text("S to switch to STINKY MODE and attract flies",width/2,210);
+    text("However, you are unable to move and points are rapidly consumed",width/2,240);
+    
     fill(0,frameCount%150 + 150,0);
-    text("Input a seed to begin the process",width/2,300);
+    text("Input a seed to begin the process",width/2,330);
     pop();
   }
 }
@@ -152,12 +161,13 @@ function generateWorld(){
   generatePlants();
   generateAnimals();
   generateEnvironment();
+  generateFish();
 }
 function generateEnvironment(){
-  envi[0] = new env(0,250,350,height,true,false,false);
-  envi[1] = new env(350,250,width,height,false,true,false);
-  envi[2] = new env(0,0,width,height,false,false,true);
-  envi[3] = new env(340,350,width,height,true,false,false);
+  envi[0] = new env(0,250,350,height,true,false,false);//ground
+  envi[1] = new env(350,250,width,height,false,true,false);//water
+  envi[2] = new env(0,0,width,height,false,false,true);//air
+  envi[3] = new env(340,350,width,height,true,false,false);//ground under water
   envi[4] = new env(350,340,50,10,false,false,false); //jumping pad
 }
 function generateAnimals(){
@@ -179,13 +189,30 @@ function generateStar(){
 }
 function generateCloud(){
   for(let c = 0; c<seedComponents[1]; c++){
-    let x = noise(noiseOffsetX) * width;
-    noiseOffsetX += 5;
+    let x = noise(noiseOffsetCloudX) * width;
+    noiseOffsetCloudX += 5;
 
-    let y = noise(noiseOffsetY) * 110 + 10;
-    noiseOffsetY += 5; 
+    let y = noise(noiseOffsetCloudY) * 110 + 10;
+    noiseOffsetCloudY += 5; 
 
     clouds[c] = new cloud(x,y,seedComponents[2],seedComponents[0]);
+  }
+}
+function generateFish(){
+  for(let f = 0; f<seedComponents[8]; f++){
+    let x = noise(noiseOffsetFishX) * (width-350) + 350;
+    noiseOffsetFishX+=5;
+
+    let y = noise(noiseOffsetFishY) * (height-220) + 250; 
+    noiseOffsetFishY+=5;
+
+    let m = noise(noiseOffsetMass) * seedComponents[9];
+    noiseOffsetMass+=5;
+
+    let color = noise(noiseOffsetColor)*100 + 150;
+    noiseOffsetColor+=0.1;
+
+    fish[f] = new fishs(x,y,m,f,color);
   }
 }
 function draw() {
@@ -199,7 +226,7 @@ function draw() {
 
   if(seedReady == true){
       showInvalidMessage();
-  invalidTimer--;
+    invalidTimer--;
     if(!worldReady){
         generateWorld();
         worldReady = true;
@@ -207,11 +234,11 @@ function draw() {
 
       background(20, 20, 60);
   
-  environment();
-  UI();
-  checkAnalyse();
-  animals();
-  mainObjects();
+    environment();
+    UI();
+    checkAnalyse();
+    animals();
+    mainObjects();
   }
 }
 function mainObjects(){
@@ -225,13 +252,18 @@ function mainObjects(){
   }
 }
 function animals(){
+  frogs.update();
+  frogs.show();
+  for(let ff of fish){
+    ff.update();
+    ff.show();
+  }
+
   for(let f of flies){
     f.checkEaten();
     f.update();
     f.show();
   }
-  frogs.update();
-  frogs.show();
 }
 function UI(){
   push();

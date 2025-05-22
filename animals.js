@@ -2,6 +2,7 @@ class frog{
     constructor(x,y,size,jumpStrength){
         this.pos = createVector(x,y);
         this.n = size;
+        this.mass = size*1.5;
         this.js = jumpStrength;
         this.vel = createVector(0,0);
         this.acc = createVector(0,0);
@@ -16,13 +17,14 @@ class frog{
         this.prev=0;
         this.timeTouchGround = 0;
         this.noPress = true;
+        this.circleAlpha = 0;
     }   
     friction(){
         let friction = this.vel.copy();
         friction.normalize();
         friction.mult(-1);
         friction.y = 0;
-        friction.setMag(0.2);
+        friction.setMag(0.1);
         this.acc.add(friction);
     }
     update(){
@@ -150,6 +152,18 @@ class frog{
         }
     }
     show(){
+        push();
+        noStroke();
+        if(analyseMode && this.circleAlpha<100){
+            this.circleAlpha+=5;
+        }
+        if(!analyseMode && this.circleAlpha>0){
+            this.circleAlpha-=5;
+        }
+        fill(255,0,0,this.circleAlpha);
+        ellipse(this.pos.x,this.pos.y,100,75);
+        pop();
+
         if(this.touchG){
         push();
         translate(this.pos.x,this.pos.y);
@@ -289,3 +303,109 @@ class fly{
     }
 }
 
+class fishs{
+    constructor(x,y,mass,id,color){
+        this.pos = createVector(x,y);
+        this.vel = createVector(0,0);
+        this.acc = createVector(0,0);
+        this.color = color;
+        this.mass = mass;
+        this.size = max(3.5,mass/6);
+        this.id = id; //position in fish[] array
+        this.noiseOffsetX = 0.0;
+        this.noiseOffsetY = 100.0;
+        this.dir = 1;
+    }
+
+    addForce(ff) {
+        let f = p5.Vector.div(ff, this.mass);
+        this.acc.add(f);
+    }
+    repel(){ //frog
+        if(abs(frogs.pos.x-this.pos.x) <= 100 && abs(frogs.pos.y-this.pos.y) <= 75){
+            let force = p5.Vector.sub(frogs.pos, this.pos);
+            let distance = force.mag();
+            distance = constrain(distance, 5, 2500);
+            force.normalize();
+            let strength = (-300 * this.mass * frogs.mass) / (distance * distance * distance);
+            force.mult(strength);
+            this.addForce(force);
+        }
+    }
+    checkEdges(){
+        if(350>this.pos.x-this.size){
+            this.vel.x = this.vel.x*-1;
+            this.pos.x = 350+this.size;
+            //this.dir = 1;
+        }
+        if(width<this.pos.x+this.size){
+            this.vel.x = this.vel.x*-1;
+            this.pos.x = width-this.size;
+            //this.dir = -1;
+        }
+        if(height<this.pos.y+this.size){
+            this.vel.y = this.vel.y*-1;
+            this.pos.y = height-this.size;
+        }
+        if(250>this.pos.y-this.size){
+            this.vel.y = this.vel.y*-1;
+            this.pos.y = 250+this.size;
+        }
+    }
+    randomMovement(){
+        let x = noise(this.noiseOffsetX)*round(random(-1,1))*5;
+        this.noiseOffsetX+=5;
+
+        let y = noise(this.noiseOffsetY)*round(random(-1,1))*5;
+        this.noiseOffsetY+=5;
+
+        let movement = createVector(x,y);
+        this.addForce(movement);
+    }
+    update(){
+        for(let i = 0; i<fish.length; i++){
+            if(i!=this.id){
+                let force = p5.Vector.sub(this.pos, fish[i].pos);
+                let distance = force.mag();
+                distance = constrain(distance, 5, 2500);
+                force.normalize();
+                let strength = (G * this.mass * fish[i].mass) / (distance * distance * distance);
+                force.mult(strength);
+                fish[i].addForce(force);
+            }
+        }
+        this.repel();
+        this.checkEdges();
+
+        this.randomMovement();
+
+        this.vel.add(this.acc);
+        this.vel.limit(1.5);
+        this.pos.add(this.vel);
+        this.acc.mult(0);
+        if(this.vel.x>0){
+            this.dir = 1;
+        }
+        else if (this.vel.x<0){
+            this.dir= -1;
+        }
+    }
+    show(){
+        push();
+        fill(79,169,188,this.color);
+        strokeWeight(1);
+        stroke(0);
+        if(analyseMode){
+            stroke("cyan");
+        }
+        if(this.dir==1){//right
+            ellipse(this.pos.x+0.3*this.size,this.pos.y,3*this.size,2*this.size);
+            triangle(this.pos.x-2*this.size,this.pos.y-this.size,this.pos.x-2*this.size,this.pos.y+this.size,this.pos.x-1.2*this.size,this.pos.y);
+        }
+        if(this.dir==-1){ //left
+            ellipse(this.pos.x-0.3*this.size,this.pos.y,3*this.size,2*this.size);
+            triangle(this.pos.x+2*this.size,this.pos.y-this.size,this.pos.x+2*this.size,this.pos.y+this.size,this.pos.x+1.2*this.size,this.pos.y);
+        }
+        pop();
+    }
+}
