@@ -21,12 +21,11 @@ class vectorArrows{
     show(){
         this.posAboveTarget = createVector(this.target.pos.x-this.target.dir*10,this.target.pos.y-40);
         if(!this.target.touchG){        
-            drawArrow(this.target.pos, this.amplifier*this.target.vel.x, 0,"blue");
-            drawArrow(this.target.pos, 0, this.amplifier/2*this.target.vel.y,"red");
-            drawArrow(this.target.pos, this.amplifier*this.target.vel.x, this.amplifier/2*this.target.vel.y,"purple");
+            drawArrow(this.target.pos, this.amplifier*this.target.vel.x, 0,"blue"); //vector of frog's x velocity
+            drawArrow(this.target.pos, 0, this.amplifier/2*this.target.vel.y,"red");//vector of frog's y velocity
+            drawArrow(this.target.pos, this.amplifier*this.target.vel.x, this.amplifier/2*this.target.vel.y,"purple");//vector of frog's total velocity
         }
-        drawArrow(this.posAboveTarget, this.target.dir*30, 0, "lime");
-
+        drawArrow(this.posAboveTarget, this.target.dir*30, 0, "lime"); //vector of frog's direction
 
 
     }

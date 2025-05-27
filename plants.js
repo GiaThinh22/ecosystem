@@ -7,6 +7,7 @@ class cattail{
     }
     update(){
         push();
+        strokeWeight(1);
         translate(this.pos.x, this.pos.y);
         this.sway = sin(this.angle)*5; 
         rotate(radians(this.sway));

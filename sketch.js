@@ -1,6 +1,7 @@
-let envi = [], stars = [], clouds = [];// land/liquid/air array, stars array, clouds array
+let envi = [], stars = [], clouds = [];// land-liquid-air array, stars array, clouds array
 let cattails = [];// cattails array
 let frogs, flies = [], fish = [];//frog and flies and fish array
+let kingfisher;
 let day = 0,dc = 2,time,timeString;// day and dayCount and time converted from day
 let G; // gravity
 let analyseMode = false,stopPressed = true,blackCoverAlpha = 0;//analyse mode components
@@ -13,6 +14,8 @@ let noiseOffsetMass = 75.0;
 let  noiseOffsetFishX = 0.0,noiseOffsetFishY = 100.0,noiseOffsetColor = 50.0;
 let invalidTimer = 0;
 let worldReady = false;
+let messageTimer = 0;
+
 //3,6,29,4,20,151,14,46,11,4
 //0x-1X-2aa-3y-4YY-5zzz-6ZZ-7NoiseSeed-8AA-9B
 /*clouds 	x-type of clouds		X-amount		aa-size
@@ -40,7 +43,7 @@ function generateSeed(){
 function resetEverything(){
   envi = [], stars = [], clouds = [];// land/liquid/air array, stars array, clouds array
   cattails = [];// cattails array
-  frogs, flies = [], fish = [];//frog and flies array
+  kingfisher, frogs, flies = [], fish = [];//frog and flies array
   day = 0,dc = 2,time,timeString;// day and dayCount and time converted from day
   G; // gravity
   analyseMode = false,stopPressed = true,blackCoverAlpha = 0;//analyse mode components
@@ -125,7 +128,8 @@ function instructionMessage(){
     text("A and D to look left and right, W to jump in CONTROL MODE",width/2,180);
     text("S to switch to STINKY MODE and attract flies",width/2,210);
     text("However, you are unable to move and points are rapidly consumed",width/2,240);
-    
+    text("The kingfisher will try to steal your points",width/2,270);
+    text("If you ran out of points, you'll die",width/2,300);
     fill(0,frameCount%150 + 150,0);
     text("Input a seed to begin the process",width/2,330);
     pop();
@@ -172,6 +176,7 @@ function generateEnvironment(){
 }
 function generateAnimals(){
   frogs = new frog(200,100,1.5,3);
+  kingfisher = new bird(width-20,50);
   analyseArrow = new vectorArrows(frogs);
   for(let f = 0; f<seedComponents[4];f++){
     flies[f] = new fly(random(10,80),random(100,200),seedComponents[3],0.05);
@@ -235,10 +240,18 @@ function draw() {
       background(20, 20, 60);
   
     environment();
+    //draw the branch
+    push();
+    fill(79,46,40);
+    rect(width-70,150,70,10);
+    pop();
+    //
     UI();
     checkAnalyse();
     animals();
-    mainObjects();
+    mainObjects();  
+    messageTimer-=1;
+    deathMessage();
   }
 }
 function mainObjects(){
@@ -252,6 +265,8 @@ function mainObjects(){
   }
 }
 function animals(){
+  kingfisher.update();
+  kingfisher.show();
   frogs.update();
   frogs.show();
   for(let ff of fish){
@@ -274,6 +289,15 @@ function UI(){
     fill(255);
   }
   textSize(20);
+  if(frogs.pecked){
+    if(pointsEarned<0.9){// 1
+      submitted();
+      messageTimer = 120;
+    }
+    fill("red");
+    pointsEarned-=0.1;
+    pointsEarned = max(pointsEarned,0); //set to 0
+  }
   text("Score: "+floor(pointsEarned)+"    Seed:" + seed, 20,30);
   text(frogs.mode,20,50);
   pop();
@@ -355,4 +379,17 @@ function checkAnalyse(){
     }
   }
   pop();
+}
+
+function deathMessage(){
+  if(messageTimer>0){
+      push();
+      fill(0,0,0,messageTimer*10)
+      textAlign(CENTER);
+      textSize(30);
+      text("WORLD RESET", width/2,height/2-40);
+      text("YOU DIED",width/2,height/2+40);
+      pop();
+  }
+  messageTimer = max(messageTimer,0); //set 0
 }

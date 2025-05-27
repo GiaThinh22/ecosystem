@@ -22,13 +22,13 @@ class env{
 class STAR{
     constructor(x,y,size){
         this.pos = createVector(x,y);
-        this.s = size;
+        this.size = size;
         this.flicker = random(120,170);
     }
     show(){
             push();
             stroke(255,255,255,255-1.5*day);
-            strokeWeight(this.s);
+            strokeWeight(this.size);
             if(frameCount%this.flicker <=3){
                 strokeWeight(0);
             }
