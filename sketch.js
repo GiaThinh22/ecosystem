@@ -13,8 +13,8 @@ let  noiseOffsetCloudX = 0.0,noiseOffsetCloudY = 100.0;
 let noiseOffsetMass = 75.0;
 let  noiseOffsetFishX = 0.0,noiseOffsetFishY = 100.0,noiseOffsetColor = 50.0;
 let invalidTimer = 0;
-let worldReady = false;
-let messageTimer = 0;
+let worldReady = false;//status of the world generation
+let messageTimer = 0;//timer for th message
 
 //3,6,29,4,20,151,14,46,11,4
 //0x-1X-2aa-3y-4YY-5zzz-6ZZ-7NoiseSeed-8AA-9B
@@ -40,7 +40,7 @@ function generateSeed(){
   seed = str(seedComponents);
 }
 
-function resetEverything(){
+function resetEverything(){//setting every necessary variables back to original
   envi = [], stars = [], clouds = [];// land/liquid/air array, stars array, clouds array
   cattails = [];// cattails array
   kingfisher, frogs, flies = [], fish = [];//frog and flies array
@@ -61,17 +61,17 @@ function resetEverything(){
 function setup() {
   createCanvas(600, 350);
 
-  //generateSeed();
+  //inputting seed system
   input = createInput('random');
   button = createButton("submit");
   button.mouseClicked(submitted);
 }
 
-function submitted(){
-  
+function submitted(){//button function
+  //get the seed from the input 
   let inputList = input.value();
   seedInputed = inputList.split(',').map(item => item.trim());
-
+  //randomize seed
   if(seedInputed[0] === "random"){
     resetEverything();
     generateSeed();
@@ -79,7 +79,7 @@ function submitted(){
     seedReady = true;
     return;
   }
-
+  //checking valid input
   if (seedInputed.length === 10) {
     let validSeed =
       checkInRange(1,3,seedInputed[0]) &&
@@ -115,6 +115,7 @@ function submitted(){
 
 }
 function instructionMessage(){
+  //just the instructions
   if(invalidTimer<=1){
     push();
     textSize(20);
@@ -148,17 +149,20 @@ function showInvalidMessage() {
   pop();
 }
 function copyArray(length) {
+  //function made to copy an array to another array duh
   for (let i = 0; i < length; i++) {
     seedComponents[i] = seedInputed[i];
   }
   seed = str(seedComponents);
 }
 function checkInRange(min, max, value) {
+  //function made to check if a value is in a certain range
   let num = parseInt(value);
   return !isNaN(num) && num >= min && num <= max;
 }
 
 function generateWorld(){
+  //it is time to generate the swamp
   G =  0.5;
   generateCloud();
   generateStar();
@@ -193,6 +197,7 @@ function generateStar(){
   }
 }
 function generateCloud(){
+  //random x y with noise
   for(let c = 0; c<seedComponents[1]; c++){
     let x = noise(noiseOffsetCloudX) * width;
     noiseOffsetCloudX += 5;
@@ -204,6 +209,7 @@ function generateCloud(){
   }
 }
 function generateFish(){
+  //random x y with noise
   for(let f = 0; f<seedComponents[8]; f++){
     let x = noise(noiseOffsetFishX) * (width-350) + 350;
     noiseOffsetFishX+=5;
@@ -222,7 +228,7 @@ function generateFish(){
 }
 function draw() {
 
-  if(!seedReady){
+  if(!seedReady){//inputting screen
     background(0);
     instructionMessage();
       showInvalidMessage();
@@ -232,29 +238,34 @@ function draw() {
   if(seedReady == true){
       showInvalidMessage();
     invalidTimer--;
-    if(!worldReady){
+    if(!worldReady){//generate the world when seed is ready
         generateWorld();
         worldReady = true;
     }
 
       background(20, 20, 60);
-  
+    //run the world
+
     environment();
+
     //draw the branch
     push();
     fill(79,46,40);
     rect(width-70,150,70,10);
     pop();
     //
+
     UI();
     checkAnalyse();
     animals();
     mainObjects();  
+
+    //death message appearing if it is
     messageTimer-=1;
     deathMessage();
   }
 }
-function mainObjects(){
+function mainObjects(){//analyse mode objects
 
   if(analyseMode){
     analyseArrow.show();
@@ -264,7 +275,7 @@ function mainObjects(){
     aD.show();
   }
 }
-function animals(){
+function animals(){//the living animals
   kingfisher.update();
   kingfisher.show();
   frogs.update();
@@ -280,7 +291,7 @@ function animals(){
     f.show();
   }
 }
-function UI(){
+function UI(){//ui text shown near the screen's edges
   push();
   if(day>100){
     fill(0);
@@ -299,10 +310,19 @@ function UI(){
     pointsEarned = max(pointsEarned,0); //set to 0
   }
   text("Score: "+floor(pointsEarned)+"    Seed:" + seed, 20,30);
-  text(frogs.mode,20,50);
+  if(frogs.mode==1){
+    text("AUTO mode",20,50);
+  }
+  else if(frogs.mode == 2){
+    text("CONTROL mode",20,50);
+  }
+  else if(frogs.mode == 3){
+    text("STINKY mode",20,50);
+  }
+
   pop();
 }
-function environment(){
+function environment(){//the land air water, stars, day/night cycle
   //air
   envi[2].show();
   //clouds
@@ -352,7 +372,7 @@ function environment(){
   }
 }
 
-function checkAnalyse(){
+function checkAnalyse(){//checking analyse mode toggled or not
   if(keyIsPressed&&key == "t"&&!analyseMode&&stopPressed&&blackCoverAlpha<=10){
     analyseMode = true;
     stopPressed = false;
@@ -381,7 +401,7 @@ function checkAnalyse(){
   pop();
 }
 
-function deathMessage(){
+function deathMessage(){//check if the frog died
   if(messageTimer>0){
       push();
       fill(0,0,0,messageTimer*10)
