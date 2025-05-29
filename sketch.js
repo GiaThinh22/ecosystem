@@ -15,6 +15,7 @@ let  noiseOffsetFishX = 0.0,noiseOffsetFishY = 100.0,noiseOffsetColor = 50.0;
 let invalidTimer = 0;
 let worldReady = false;//status of the world generation
 let messageTimer = 0;//timer for th message
+let speacialWorld = false; //check if this is an easter egg world (intentional typo)
 
 //3,6,29,4,20,151,14,46,11,4
 //0x-1X-2aa-3y-4YY-5zzz-6ZZ-7NoiseSeed-8AA-9B
@@ -40,6 +41,22 @@ function generateSeed(){
   seed = str(seedComponents);
 }
 
+function generateEasterEgg(){//it's the easter egg seed
+  speacialWorld = true;
+  seedComponents[0] = 3;//cloud type
+  seedComponents[1] = 50;//cloud amount
+  seedComponents[2] = 30;//cloud size
+  seedComponents[3] = 7;//fly size
+  seedComponents[4] = 50;//fly amount
+  seedComponents[5] = 200;//cattail height
+  seedComponents[6] = 45;//cattail amount
+  seedComponents[7] = 69;//noise seed
+  seedComponents[8] = 30;//fish amount
+  seedComponents[9] = 100;//fish size
+  noiseSeed(seedComponents[7]);
+  seed = str(seedComponents);
+}
+
 function resetEverything(){//setting every necessary variables back to original
   envi = [], stars = [], clouds = [];// land/liquid/air array, stars array, clouds array
   cattails = [];// cattails array
@@ -56,6 +73,7 @@ function resetEverything(){//setting every necessary variables back to original
   noiseOffsetFishX = 0.0, noiseOffsetFishY = 100.0, noiseOffsetColor = 50.0;
   invalidTimer = 0;
   worldReady = false;
+  speacialWorld = false;
 }
 
 function setup() {
@@ -76,6 +94,13 @@ function submitted(){//button function
     resetEverything();
     generateSeed();
     input.value(seedComponents);
+    seedReady = true;
+    return;
+  }
+  if(seedInputed[0] === "easter_egg_pretty_please"){
+    resetEverything();
+    generateEasterEgg();
+    input.value("nice crtl+f skill");
     seedReady = true;
     return;
   }
@@ -142,8 +167,13 @@ function showInvalidMessage() {
   fill(255);
   textAlign(CENTER);
   if(invalidTimer>0){
-    text("Invalid seed", width/2, height/3);
-    text("Type random to generate random seed", width/2, height/2);
+    if(!speacialWorld){
+      text("Invalid seed", width/2, height/3);
+      text("Type random to generate random seed", width/2, height/2);
+    }
+    else{
+      text("What an experience.",width/2,height/2);
+    }
   }
 
   pop();
@@ -309,8 +339,14 @@ function UI(){//ui text shown near the screen's edges
     pointsEarned-=0.1;
     pointsEarned = max(pointsEarned,0); //set to 0
   }
-  text("Score: "+floor(pointsEarned)+"    Seed:" + seed, 20,30);
-  if(frogs.mode==1){
+  if(!speacialWorld){
+    text("Score: "+floor(pointsEarned)+"    Seed:" + seed, 20,30);
+  }
+  else{
+    text("Score: "+floor(pointsEarned)+"    SPECIAL WORLD", 20,30);
+  }
+
+if(frogs.mode==1){
     text("AUTO mode",20,50);
   }
   else if(frogs.mode == 2){

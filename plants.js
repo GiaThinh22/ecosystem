@@ -1,6 +1,6 @@
 class cattail{
     constructor(x,y,a,h){
-        this.pos = createVector(x,y);
+        this.pos = createVector(x,y+5);
         this.angle = a;
         this.sway;
         this.height = h + map(noise(x), 0, 1, -10,10);
